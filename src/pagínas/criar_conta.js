@@ -1,7 +1,6 @@
 import styles from "../Assets/css/criar_conta.module.css";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-
+import { Link, useNavigate } from "react-router-dom";
 
 export default function Criar_conta() {
     const [form, setForm] = useState({
@@ -11,15 +10,11 @@ export default function Criar_conta() {
         area: "",
         biografia: "",
         link: "",
-        foto: "",
         senha: "",
     });
-
-
+    const [foto, setFoto] = useState(null); // Para armazenar o arquivo da foto
     const [erro, setErro] = useState("");
-    const [carregando, setCarregando] = useState(false);
     const navigate = useNavigate();
-
 
     function dados_form(e) {
         setForm({
@@ -28,56 +23,40 @@ export default function Criar_conta() {
         });
     }
 
-
-    // Função de validação
-    function validarCadastro() {
-        const erros = [];
-        if (!form.nome) erros.push("O nome é obrigatório.");
-        if (!form.email) erros.push("O email é obrigatório.");
-        if (!/\S+@\S+\.\S+/.test(form.email)) erros.push("O email não é válido.");
-        if (!form.senha || form.senha.length < 6) erros.push("A senha deve ter pelo menos 6 caracteres.");
-        return erros;
+    function handleFotoChange(e) {
+        setFoto(e.target.files[0]); // Armazena o arquivo da foto
     }
 
-
-    // Função para envio dos dados
     async function enviar(e) {
         e.preventDefault();
 
-
-        const erros = validarCadastro();
-        if (erros.length) {
-            setErro(erros.join(" "));
+        if (!form.nome || !form.email || !form.area || !form.senha) {
+            setErro("Por favor, preencha todos os campos obrigatórios.");
             return;
         }
 
-
-        setCarregando(true);
-
+        const formData = new FormData();
+        Object.keys(form).forEach(key => formData.append(key, form[key]));
+        if (foto) formData.append("foto", foto); // Adiciona o arquivo da foto
 
         try {
-            const resposta = await fetch("http://localhost:3001/enviar_cadastro_de_artista", {
+            let resposta = await fetch("http://localhost:3001/enviar_cadastro_de_artista", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(form),
+                body: formData, // Envia o formulário com o arquivo
             });
 
-
-            const respostaData = await resposta.json();
             if (resposta.ok) {
                 alert("Conta criada com sucesso!");
                 navigate("/portal_artistas");
             } else {
-                setErro(respostaData.error || "Erro ao criar a conta. Tente novamente.");
+                const erro = await resposta.json();
+                setErro(erro.message || "Erro ao criar a conta. Tente novamente.");
             }
         } catch (error) {
-            console.error("Erro na requisição:", error);
+            console.error("Erro:", error);
             setErro("Erro ao criar a conta. Verifique os dados e tente novamente.");
-        } finally {
-            setCarregando(false);
         }
     }
-
 
     return (
         <div className={styles.corpo}>
@@ -85,91 +64,27 @@ export default function Criar_conta() {
                 <h1 className={styles.titulo}>Abra uma conta</h1>
                 <p className={styles.texto}>É gratuito</p>
 
+                {erro && <p className={styles.erro}>{erro}</p>}
 
-                {/* Exibindo mensagem de erro, se houver */}
-                {erro && (
-                    <div className={styles.erro}>
-                        {erro.split(" ").map((mensagem, index) => (
-                            <p key={index}>{mensagem}</p>
-                        ))}
-                    </div>
-                )}
-
-
-                <input
-                    className={styles.campos_form}
-                    id="nome"
-                    onChange={dados_form}
-                    placeholder="Nome:"
-                    type="text"
-                    value={form.nome}
-                />
-                <input
-                    className={styles.campos_form}
-                    id="email"
-                    onChange={dados_form}
-                    placeholder="Seu e-mail:"
-                    type="email"
-                    value={form.email}
-                />
-                <select
-                    className={styles.campos_form}
-                    id="perfil"
-                    onChange={dados_form}
-                    value={form.perfil}
-                >
-                    <option value="Público Geral">Público Geral</option>
-                    <option value="Público Privado">Público Privado</option>
+                <input className={styles.campos_form} id="nome" required onChange={dados_form} placeholder="Nome:" type="text" />
+                <input className={styles.campos_form} id="email" required onChange={dados_form} placeholder="Seu e-mail:" type="email" />
+                <select className={styles.campos_form} id="perfil" onChange={dados_form}>
+                    <option>Público Geral</option>
+                    <option>Público Privado</option>
                 </select>
-                <input
-                    className={styles.campos_form}
-                    id="area"
-                    onChange={dados_form}
-                    placeholder="Área de atuação:"
-                    type="text"
-                    value={form.area}
-                />
-                <textarea
-                    className={styles.campos_form}
-                    id="biografia"
-                    onChange={dados_form}
-                    placeholder="Insira sua Biografia:"
-                    value={form.biografia}
-                />
-                <input
-                    className={styles.campos_form}
-                    id="link"
-                    onChange={dados_form}
-                    placeholder="Insira o link dos seus repositórios:"
-                    type="text"
-                    value={form.link}
-                />
-                <input
-                    className={styles.campos_form}
-                    id="senha"
-                    onChange={dados_form}
-                    placeholder="Senha:"
-                    type="password"
-                    value={form.senha}
-                />
-                <input
-                    className={styles.campos_form}
-                    id="foto"
-                    onChange={dados_form}
-                    placeholder="Link da foto de perfil:"
-                    type="text"
-                    value={form.foto}
-                />
+                <input className={styles.campos_form} id="area" required onChange={dados_form} placeholder="Área de atuação:" type="text" />
+                <textarea className={styles.campos_form} id="biografia" onChange={dados_form} placeholder="Insira sua Biografia:" />
+                <input className={styles.campos_form} id="link" onChange={dados_form} placeholder="Insira o link dos seus repositórios:" type="text" />
+                <input className={styles.campos_form} id="senha" required onChange={dados_form} placeholder="Senha:" type="password" />
 
+                <label>Foto de Perfil:</label>
+                <input className={styles.campos_form} type="file" onChange={handleFotoChange} accept="image/*" />
 
                 <div className={styles.abrir_conta}>
-                    <button className={styles.botao_abrir_conta} type="submit" disabled={carregando}>
-                        {carregando ? "Carregando..." : "Abrir conta"}
-                    </button>
+                    <input type="submit" className={styles.botao_abrir_conta} value="Abrir conta" />
                 </div>
             </form>
         </div>
     );
 }
-
 
