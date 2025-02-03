@@ -7,41 +7,34 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ENUM para perfis de usuários
-enum Perfil {
-  "Público Geral"
-  "Artista"
-  "Organizador"
-}
-
 // Modelo de Usuário
 model Usuario {
   UsuarioID     String       @id @default(uuid()) 
-  Nome          String       @db.VarChar(255)   
+  Nome          String
   Email         String       @unique           
-  Senha         String       @db.VarChar(255)    
-  Perfil        Perfil       @default("Público Geral") 
+  Senha         String
+  Perfil        String       @default("Público Geral") 
   DataCadastro  DateTime?    @default(now())    
   Ativo         Boolean      @default(true)      
 
   // Relacionamentos
-  PerfisArtistas       PerfisArtistas[]       @relation("UsuarioPerfisArtistas")
-  InscricoesEditais    InscricoesEditais[]     @relation("UsuarioInscricoesEditais")
-  InscricoesEventos    InscricoesEventos[]     @relation("UsuarioInscricoesEventos")
-  ProjetosColaborativos ProjetosColaborativos[] @relation("UsuarioProjetosColaborativos")
-  ParticipacoesProjetos ParticipacoesProjetos[] @relation("UsuarioParticipacoesProjetos")
-  FeedbacksProjetos    FeedbacksProjetos[]     @relation("UsuarioFeedbacksProjetos")
-  DuvidasSugestoesErros DuvidasSugestoesErros[] @relation("UsuarioDuvidasSugestoesErros")
+  PerfisArtistas       PerfisArtistas[]
+  InscricoesEditais    InscricoesEditais[]
+  InscricoesEventos    InscricoesEventos[]
+  ProjetosColaborativos ProjetosColaborativos[]
+  ParticipacoesProjetos ParticipacoesProjetos[]
+  FeedbacksProjetos    FeedbacksProjetos[]
+  DuvidasSugestoesErros DuvidasSugestoesErros[]
 }
 
 // Modelo para Perfis de Artistas
 model PerfisArtistas {
   PerfilArtistaID String     @id @default(uuid())
   UsuarioID       String
-  AreaAtuacao     String     @db.VarChar(255)  
-  Biografia       String?    @db.VarChar(500)  
-  LinkPortfolio   String?    @db.VarChar(255)  
-  FotoPerfil      String?    @db.VarChar(255)  
+  AreaAtuacao     String
+  Biografia       String?
+  LinkPortfolio   String? 
+  FotoPerfil      String?
 
   // Relacionamento com usuário
   usuario         Usuario  @relation(fields: [UsuarioID], references: [UsuarioID], onDelete: Cascade)
@@ -50,18 +43,18 @@ model PerfisArtistas {
 // Modelo para Editais
 model Editais {
   EditalID             Int      @id @default(autoincrement())
-  Titulo               String   @db.VarChar(255)  
-  Descricao            String   @db.VarChar(1000) 
-  CategoriaArtistica   String   @db.VarChar(255)  
+  Titulo               String
+  Descricao            String
+  CategoriaArtistica   String  
   PrazoInscricao       DateTime
-  DetalhesFinanciamento String? @db.VarChar(1000) 
-  CriteriosSelecao     String   @db.VarChar(1000) 
-  ProcessoInscricao    String   @db.VarChar(1000) 
-  Organizador          String   @db.VarChar(255)  
+  DetalhesFinanciamento String?
+  CriteriosSelecao     String
+  ProcessoInscricao    String
+  Organizador          String 
   DataPublicacao       DateTime
 
   // Relacionamentos
-  InscricoesEditais InscricoesEditais[] @relation("EditalInscricoes")
+  InscricoesEditais InscricoesEditais[]
 }
 
 // Modelo para Inscrições em Editais
@@ -69,9 +62,9 @@ model InscricoesEditais {
   InscricaoEditalID Int     @id @default(autoincrement())
   EditalID          Int
   UsuarioID         String
-  Status            String   @db.VarChar(50)    
+  Status            String
   DataInscricao     DateTime
-  Feedback          String?  @db.VarChar(1000) 
+  Feedback          String?
 
   // Relacionamentos
   edital   Editais  @relation(fields: [EditalID], references: [EditalID], onDelete: Cascade)
@@ -81,17 +74,17 @@ model InscricoesEditais {
 // Modelo para Eventos
 model Eventos {
   EventoID        Int     @id @default(autoincrement())
-  NomeEvento      String  @db.VarChar(255)  
-  Descricao       String  @db.VarChar(1000) 
+  NomeEvento      String
+  Descricao       String
   DataHora        DateTime
-  Localizacao     String  @db.VarChar(255)  
-  Organizador     String  @db.VarChar(255)  
-  InfoIngresso    String? @db.VarChar(1000) 
-  ImagemCartaz    String? @db.VarChar(255)  
+  Localizacao     String  
+  Organizador     String  
+  InfoIngresso    String? 
+  ImagemCartaz    String?
   DataPublicacao  DateTime
 
   // Relacionamentos
-  InscricoesEventos InscricoesEventos[] @relation("EventoInscricoes")
+  InscricoesEventos InscricoesEventos[]
 }
 
 // Modelo para Inscrições em Eventos
@@ -109,18 +102,18 @@ model InscricoesEventos {
 // Modelo para Projetos Colaborativos
 model ProjetosColaborativos {
   ProjetoID            Int     @id @default(autoincrement())
-  Titulo               String  @db.VarChar(255)  
-  Descricao            String  @db.VarChar(1000) 
-  AreaAtuacaoNecessaria String @db.VarChar(255)  
-  Localizacao          String? @db.VarChar(255)  
-  TipoColaboracao      String  @db.VarChar(255) 
+  Titulo               String
+  Descricao            String
+  AreaAtuacaoNecessaria String
+  Localizacao          String?
+  TipoColaboracao      String
   CriadorID            String
   DataCriacao          DateTime
 
   // Relacionamentos
   criador        Usuario  @relation(fields: [CriadorID], references: [UsuarioID], onDelete: Cascade)
-  ParticipacoesProjetos ParticipacoesProjetos[] @relation("ProjetoParticipacoes")
-  FeedbacksProjetos FeedbacksProjetos[] @relation("ProjetoFeedbacks")
+  ParticipacoesProjetos ParticipacoesProjetos[]
+  FeedbacksProjetos FeedbacksProjetos[]
 }
 
 // Modelo para Participações em Projetos
@@ -140,7 +133,7 @@ model FeedbacksProjetos {
   FeedbackID     Int     @id @default(autoincrement())
   ProjetoID      Int
   AutorID        String
-  Comentario     String? @db.VarChar(1000) 
+  Comentario     String?
   Nota           Int?    // Nota do feedback
   DataFeedback   DateTime
 
@@ -153,9 +146,9 @@ model FeedbacksProjetos {
 model DuvidasSugestoesErros {
   DuvidaSugestaoErroID Int     @id @default(autoincrement())
   UsuarioID            String
-  Tipo                 String  @db.VarChar(255) 
-  Descricao            String  @db.VarChar(1000) 
-  ArquivoAnexo         String? @db.VarChar(255)  
+  Tipo                 String
+  Descricao            String
+  ArquivoAnexo         String?
   DataEnvio            DateTime
 
   // Relacionamentos
